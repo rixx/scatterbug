@@ -168,3 +168,4 @@ venv.bak/
 # End of https://www.gitignore.io/api/python,node,js
 
 *.db
+public/
