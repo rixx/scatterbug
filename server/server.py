@@ -20,5 +20,9 @@ async def init_db(app):
 app = web.Application()
 app.on_startup.append(init_db)
 setup_routes(app)
+async def on_prepare(request, response):
+    response.headers['Access-Control-Allow-Origin'] = '*'
+
+app.on_response_prepare.append(on_prepare)
 
 web.run_app(app, host='localhost', port=8080)

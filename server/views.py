@@ -55,4 +55,5 @@ async def move_issue(request):
             (org, project, github_id, data.get('x', 0), data.get('y', 0)),
         )
     request.app['db'].commit()
-    return web.json_response({})
+    print(f'org: {org}, project: {project}, id: {id}, x: {data["x"]}, y: {data["y"]}')
+    return web.json_response({}, headers={})
