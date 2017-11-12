@@ -1,11 +1,41 @@
 <template lang="jade">
 .body(v-if="issues")
-    .explanation Hi there
+    .explanation
+        h2 Welcome to scatterbug!
+        .info
+            span.text This page can help you organize your GitHub issues. You can also 
+            a.text(href="https://github.com/rixx/scatterbug") fork it 
+            span.text on GitHub.
     .content
         svg(@click="handleIssue", ref="svg", @mousemove="dragIssue", @mouseup="stopDragging")
-            g(v-for="issue in placedIssues", @mousedown="startDragging(issue)", :transform="`translate(${issue.x},${issue.y})`")
-                circle(r=2)
-                text # {{ issue.number }}
+            defs
+                radialGradient(id="RadialGradient2" cx="1" cy="1" fx="0.8" fy="1.2" r="1.3" spreadMethod="reflect")
+                    stop(offset="20%",stop-color="#B34066")
+                    stop(offset="80%",stop-color="#5CAA8D")
+            rect(
+                v-if="svgDimensions",
+                x=81, y=0, :width="`${this.svgDimensions.x - 180}`", :height="`${this.svgDimensions.y - 71}`"
+                fill="url(#RadialGradient2)"
+            )
+            path(
+                v-if="svgDimensions",
+                :d="`M ${this.svgDimensions.x - 100} ${this.svgDimensions.y - 70} V ${this.svgDimensions.y - 70} H 80 L 80 0`",
+                fill="transparent",
+                stroke="black",
+            )
+            text(x=-20, y=100,transform="rotate(-30)") Easy
+            text(x=-100, y=200,transform="rotate(-30)") Normal
+            text(x=-130, y=300,transform="rotate(-30)") Hm
+            text(x=-190, y=400,transform="rotate(-30)") Oof
+            text(x=-250, y=500,transform="rotate(-30)") How
+            text(x=-280, y=670,transform="rotate(-30)") Now
+            text(x=-130, y=760,transform="rotate(-30)") 3 days
+            text(x=40, y=860,transform="rotate(-30)") 1 week
+            text(x=240, y=980,transform="rotate(-30)") 2 weeks
+            text(x=440, y=1090,transform="rotate(-30)") 1 month
+            text(x=640, y=1210,transform="rotate(-30)") 3 months
+            text(x=840, y=1310,transform="rotate(-30)") 1 year
+            mappedIssue(v-if="ratios", v-for="issue in placedIssues", @mousedown.native="startDragging(issue)", :issue="issue", :ratios="ratios")
     .sidebar
         .list
             .element(v-for="issue in issues", v-if="!issue.x", @click="selectIssueFromList(issue)", :class="{active: issue === selectedIssue}")
@@ -15,8 +45,12 @@
 <script>
 import api from 'lib/api'
 import github from 'lib/github'
+import MappedIssue from './mapped_issue'
 import url from 'url'
 export default {
+    components: {
+        MappedIssue,
+    },
     data () {
         return {
             issues: null,
@@ -24,6 +58,8 @@ export default {
             org: null,
             project: null,
             draggedIssue: null,
+            ratios: null,
+            svgDimensions: null,
         }
     },
     mounted () {
@@ -38,22 +74,34 @@ export default {
                 acc[item.id] = item
                 return acc
             }, {})
+            this.issues = []
             for (const issue of issues) {
-                if (coordinateMap[issue.number]) {
-                    issue.x = coordinateMap[issue.number].x
-                    issue.y = coordinateMap[issue.number].y
+                if (!issue.pull_request) {
+                    if (coordinateMap[issue.number]) {
+                        issue.x = coordinateMap[issue.number].x
+                        issue.y = coordinateMap[issue.number].y
+                    }
+                    this.issues.push(issue)
                 }
             }
-            this.issues = issues
+            this.$nextTick(this.computeRatios)
         })
     },
     computed: {
         placedIssues () {
-            console.log(this.issues.filter((issue) => !!issue.x))
             return this.issues.filter((issue) => !!issue.x)
-        }
+        },
     },
     methods: {
+        computeRatios () {
+            if (!this.$refs.svg) return {x: null, y: null}
+            const rect = this.$refs.svg.getBoundingClientRect()
+            const widthRatio = rect.width / 100
+            const heightRatio = rect.height / 100
+            this.ratios = {x: widthRatio, y: heightRatio}
+            /* this.svgDimensions = {x: rect.width, y: rect.height} */
+            this.$set(this, 'svgDimensions', {x:rect.width, y:rect.height})
+        },
         selectIssueFromList (issue) {
             this.selectedIssue = issue
         },
@@ -75,16 +123,14 @@ export default {
             this.draggedIssue = null
         },
         relocateIssue(issue, event, save=false) {
-            const svg = this.$refs.svg
-            let point = svg.createSVGPoint()
-            point.x = event.clientX
-            point.y = event.clientY
-            point = point.matrixTransform(svg.getScreenCTM().inverse())
-            this.$set(issue, 'x', point.x)
-            this.$set(issue, 'y', point.y)
+            const widthRatio = this.ratios.x
+            const heightRatio = this.ratios.y
+
+            this.$set(issue, 'x', event.offsetX/widthRatio)
+            this.$set(issue, 'y', event.offsetY/heightRatio)
             if (save)
                 api.saveIssue(this.org, this.project, issue.number, issue.x, issue.y)
-        }
+        },
     }
 }
 </script>
@@ -93,7 +139,8 @@ body
     font-family: 'Roboto'
     margin: 0
     padding: 0
-
+.explanation
+    padding: 16px 32px
 .body
     display: grid
     height: 100vh
@@ -113,8 +160,24 @@ body
 svg
     height: 100%
     width: 100%
+    text.label
+        font-size: 14px
+        font-weight: 500
     text
-        font-size: 10px
-.active
-    background-color: red
+        user-select: none
+    .stop1, .stop2, .stop3
+        color: red
+.sidebar
+    display: flex
+    flex-direction: column
+    margin-bottom: 32px
+    .list
+        padding: 8px
+        .element
+            margin: 2px
+            background-color: #efefef
+            .number
+                font-weight: 500
+        .active
+            background-color: #5caa8d
 </style>
