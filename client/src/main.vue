@@ -5,7 +5,9 @@
         .info
             span.text This page can help you organize your GitHub issues. You can also 
             a.text(href="https://github.com/rixx/scatterbug") fork it 
-            span.text on GitHub.
+            span.text on GitHub. 
+            span.howto Just click on an unscheduled issue, and click on the map where you'd like to drop it. Afterwards you can just drag it along the chart.
+        .warning This website is not made for multiple users at the same time – you'll need to refresh the website to see changes others made.
     .content
         svg(@click="handleIssue", ref="svg", @mousemove="dragIssue", @mouseup="stopDragging")
             defs
@@ -23,20 +25,22 @@
                 fill="transparent",
                 stroke="black",
             )
-            text(x=-20, y=100,transform="rotate(-30)") Easy
-            text(x=-100, y=200,transform="rotate(-30)") Normal
-            text(x=-130, y=300,transform="rotate(-30)") Hm
-            text(x=-190, y=400,transform="rotate(-30)") Oof
-            text(x=-250, y=500,transform="rotate(-30)") How
-            text(x=-280, y=670,transform="rotate(-30)") Now
-            text(x=-130, y=760,transform="rotate(-30)") 3 days
-            text(x=40, y=860,transform="rotate(-30)") 1 week
-            text(x=240, y=980,transform="rotate(-30)") 2 weeks
-            text(x=440, y=1090,transform="rotate(-30)") 1 month
-            text(x=640, y=1210,transform="rotate(-30)") 3 months
-            text(x=840, y=1310,transform="rotate(-30)") 1 year
+            text(x=20, :y="(svgDimensions.y - 80) * 0.1", v-if="svgDimensions") Easy
+            text(x=20, :y="(svgDimensions.y - 80) * 0.3", v-if="svgDimensions") Normal
+            text(x=20, :y="(svgDimensions.y - 80) * 0.5", v-if="svgDimensions") Hm
+            text(x=20, :y="(svgDimensions.y - 80) * 0.7", v-if="svgDimensions") Oof
+            text(x=20, :y="(svgDimensions.y - 80) * 0.9", v-if="svgDimensions") How
+
+            text(:x="(svgDimensions.x - 70) * 0.023 + 70", :y="svgDimensions.y - 30", v-if="svgDimensions") Now
+            text(:x="(svgDimensions.x - 70) * 0.158 + 70", :y="svgDimensions.y - 30", v-if="svgDimensions") 3 days
+            text(:x="(svgDimensions.x - 70) * 0.296 + 70", :y="svgDimensions.y - 30", v-if="svgDimensions") 1 week
+            text(:x="(svgDimensions.x - 70) * 0.435 + 70", :y="svgDimensions.y - 30", v-if="svgDimensions") 2 weeks
+            text(:x="(svgDimensions.x - 70) * 0.573 + 70", :y="svgDimensions.y - 30", v-if="svgDimensions") 1 month
+            text(:x="(svgDimensions.x - 70) * 0.712 + 70", :y="svgDimensions.y - 30", v-if="svgDimensions") 3 months
+            text(:x="(svgDimensions.x - 70) * 0.85 + 70", :y="svgDimensions.y - 30", v-if="svgDimensions") 1 year
             mappedIssue(v-if="ratios", v-for="issue in placedIssues", @mousedown.native="startDragging(issue)", :issue="issue", :ratios="ratios")
     .sidebar
+        h4 Unscheduled issues
         .list
             .element(v-for="issue in issues", v-if="!issue.x", @click="selectIssueFromList(issue)", :class="{active: issue === selectedIssue}")
                 .number # {{ issue.number }}
@@ -65,6 +69,7 @@ export default {
     mounted () {
         const url = window.location.pathname.split('/')
         this.project = url.pop()
+        if (!this.project) this.project = url.pop()
         this.org = url.pop()
         Promise.all([
             github.getIssues(this.project, this.org),
@@ -86,6 +91,7 @@ export default {
             }
             this.$nextTick(this.computeRatios)
         })
+        window.addEventListener('resize', this.computeRatios)
     },
     computed: {
         placedIssues () {
@@ -140,7 +146,14 @@ body
     margin: 0
     padding: 0
 .explanation
-    padding: 16px 32px
+    padding: 16px 82px
+    .warning
+        margin 8px
+        padding 16px 24px
+        background-color: #feebd8
+        color: #825020
+        border: 1px solid #fee2c9
+        width: 60%
 .body
     display: grid
     height: 100vh
@@ -175,9 +188,12 @@ svg
         padding: 8px
         .element
             margin: 2px
+            padding: 10px 16px
             background-color: #efefef
             .number
-                font-weight: 500
+                font-weight: 600
+            .title
+                color: #444
         .active
             background-color: #5caa8d
 </style>
