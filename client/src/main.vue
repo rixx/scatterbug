@@ -68,12 +68,13 @@ export default {
     },
     mounted () {
         const url = window.location.pathname.split('/')
+        this.token = url.pop()
+        if (!this.token) this.token = url.pop()
         this.project = url.pop()
-        if (!this.project) this.project = url.pop()
         this.org = url.pop()
         Promise.all([
             github.getIssues(this.project, this.org),
-            api.getIssues(this.project, this.org)
+            api.getIssues(this.project, this.org, this.token)
         ]).then(([issues, coordinates]) => {
             const coordinateMap = coordinates.reduce((acc, item) => {
                 acc[item.id] = item
@@ -135,7 +136,7 @@ export default {
             this.$set(issue, 'x', event.offsetX/widthRatio)
             this.$set(issue, 'y', event.offsetY/heightRatio)
             if (save)
-                api.saveIssue(this.org, this.project, issue.number, issue.x, issue.y)
+                api.saveIssue(this.org, this.project, issue.number, issue.x, issue.y, this.token)
         },
     }
 }

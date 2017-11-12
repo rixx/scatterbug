@@ -12,7 +12,7 @@ async def init_db(app):
     cursor.execute(
         'CREATE TABLE IF NOT EXISTS issues '
         '(id integer unique primary key, org text, project text, '
-        'github_id integer, x float, y float)'
+        'github_id integer, x float, y float, token text)'
     )
     connection.commit()
     app['db'] = connection

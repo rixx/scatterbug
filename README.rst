@@ -3,6 +3,8 @@ scatterbug
 
 ``scatterbug`` allows you to place your GitHub issues on a chart. It's as easy as that.
 
+You navigate to ``somewhe.re/myorg/myrepo/secret`` and you can push around issues on a map!
+Only people with that link (i.e. your secret token) will be able to see and your issue map.
 
 Running it
 ==========
@@ -20,9 +22,6 @@ What's missing
 
 - Proper installation instructions. The above are the result of two minutes of work, so they assume
   that you know all the tech. PRs welcome.
-- Security. Atm, just anyone can use this tool on any server. Some basic auth at least for the server
-  component would make this project a lot less bonkers. But hey, I'm sure SQLite security is great
-  on its own.
 - Filtering for text or for labels. We already pull all the GitHub information, so we should be
   able to filter for labels just by selecting them. And milestones. And contibut… look, it's feature
   creep, it's a perfectly natural software stage, okay?
