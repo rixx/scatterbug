@@ -21,7 +21,7 @@ What's missing
 ==============
 
 - Proper installation instructions. The above are the result of two minutes of work, so they assume
-  that you know all the tech. PRs welcome.
+  that you know all the tech. Pull requests welcome.
 - Filtering for text or for labels. We already pull all the GitHub information, so we should be
   able to filter for labels just by selecting them. And milestones. And contibut… look, it's feature
   creep, it's a perfectly natural software stage, okay?
